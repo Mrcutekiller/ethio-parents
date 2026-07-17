@@ -1,11 +1,16 @@
 import mongoose from 'mongoose';
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/ethio-parents-portal';
+const MONGODB_URI = process.env.MONGODB_URI;
+
+if (!MONGODB_URI) {
+  throw new Error(
+    'Please define the MONGODB_URI environment variable in your .env.local file'
+  );
+}
 
 interface MongooseCache {
   conn: typeof mongoose | null;
   promise: Promise<typeof mongoose> | null;
-  mongod: unknown | null;
   seeded: boolean;
 }
 
@@ -13,7 +18,7 @@ declare global {
   var mongooseCache: MongooseCache | undefined;
 }
 
-const cached: MongooseCache = global.mongooseCache ?? { conn: null, promise: null, mongod: null, seeded: false };
+const cached: MongooseCache = global.mongooseCache ?? { conn: null, promise: null, seeded: false };
 
 if (!global.mongooseCache) {
   global.mongooseCache = cached;
@@ -23,23 +28,7 @@ export async function connectDB() {
   if (cached.conn) return cached.conn;
 
   if (!cached.promise) {
-    let uri = MONGODB_URI;
-
-    // Try connecting to real MongoDB first, fall back to in-memory
-    try {
-      await mongoose.connect(uri, { serverSelectionTimeoutMS: 3000 });
-    } catch {
-      console.log('MongoDB not found locally. Starting in-memory MongoDB...');
-      const { MongoMemoryServer } = await import('mongodb-memory-server');
-      const mongod = await MongoMemoryServer.create({
-        instance: { port: 27017 },
-      });
-      uri = mongod.getUri();
-      cached.mongod = mongod;
-      console.log(`In-memory MongoDB started at ${uri}`);
-    }
-
-    cached.promise = mongoose.connect(uri, {
+    cached.promise = mongoose.connect(MONGODB_URI!, {
       bufferCommands: false,
     });
   }

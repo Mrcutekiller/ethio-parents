@@ -48,7 +48,7 @@ export default function ParentDashboard() {
   }, []);
 
   useEffect(() => {
-    if (!selectedChild?.student_profile?._id && !selectedChild?.student_id) return;
+    if (!selectedChild?.student_id) return;
     const token = localStorage.getItem("token");
     const studentId = selectedChild.student_id;
     fetch(`/api/attendance?student_id=${studentId}`, {

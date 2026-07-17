@@ -1,0 +1,16 @@
+▲ Next.js 16.2.10 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.100.25:3000
+- Environments: .env.local
+✓ Ready in 2.3s
+
+ GET / 200 in 1829ms (next.js: 1206ms, application-code: 623ms)
+ GET /auth/login 200 in 1424ms (next.js: 1243ms, application-code: 181ms)
+ GET / 200 in 151ms (next.js: 13ms, application-code: 138ms)
+ GET /auth/login 200 in 81ms (next.js: 9ms, application-code: 72ms)
+ GET /auth/parent-signup 200 in 1036ms (next.js: 925ms, application-code: 111ms)
+(node:13840) [MONGOOSE] Warning: Duplicate schema index on {"email":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(Use `node --trace-warnings ...` to show where the warning was created)
+Login error: SyntaxError: Expected property name or '}' in JSON at position 1 (line 1 column 2)
+    at JSON.parse (<anonymous>)
+ POST /api/auth/login 500 in 3.5s (next.js: 3.4s, application-code: 85ms)

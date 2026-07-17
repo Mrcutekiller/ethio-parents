@@ -2,9 +2,11 @@ import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/ethio-parents-portal';
+const MONGODB_URI = process.env.MONGODB_URI;
 
-let mongod: unknown = null;
+if (!MONGODB_URI) {
+  throw new Error('Please define the MONGODB_URI environment variable');
+}
 
 // Import models
 import User from './models/User';
@@ -20,16 +22,9 @@ import Notification from './models/Notification';
 
 async function seed() {
   console.log('Connecting to MongoDB...');
-  try {
-    await mongoose.connect(MONGODB_URI, { serverSelectionTimeoutMS: 3000 });
-  } catch {
-    console.log('MongoDB not found locally. Starting in-memory MongoDB...');
-    const { MongoMemoryServer } = await import('mongodb-memory-server');
-    mongod = await MongoMemoryServer.create({ instance: { port: 27017 } });
-    const uri = (mongod as { getUri: () => string }).getUri();
-    await mongoose.connect(uri);
-    console.log(`In-memory MongoDB started at ${uri}`);
-  }
+  await mongoose.connect(MONGODB_URI!, {
+    bufferCommands: false,
+  });
   console.log('Connected!\n');
 
   // Clear existing data
@@ -272,9 +267,6 @@ async function seed() {
   }
 
   await mongoose.disconnect();
-  if (mongod) {
-    await (mongod as { stop: () => Promise<void> }).stop();
-  }
   console.log('\nDone!');
 }
 
