@@ -41,8 +41,9 @@ yarn-error.log*
 next-env.d.ts
 
 # dev logs
-dev-out.log
-dev-err.log
+*.log
+seed-error.txt
+seed-output.txt
 
 # mimocode
 .mimocode
