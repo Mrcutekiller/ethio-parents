@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     const from = searchParams.get('from');
     const to = searchParams.get('to');
 
-    let query: Record<string, unknown> = {};
+    const query: Record<string, unknown> = {};
 
     if (user.role === 'admin') {
       // Admin sees all

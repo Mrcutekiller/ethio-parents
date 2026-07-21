@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     const date = searchParams.get('date');
     const month = searchParams.get('month');
 
-    let query: Record<string, unknown> = {};
+    const query: Record<string, unknown> = {};
 
     if (user.role === 'student') {
       const profile = await StudentProfile.findOne({ user_id: user._id.toString() });

@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const threadId = searchParams.get('thread_id');
 
-    let query: Record<string, unknown> = {};
+    const query: Record<string, unknown> = {};
 
     if (user.role === 'admin') {
       // Admin can see all messages for oversight

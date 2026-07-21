@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
     const subjectId = searchParams.get('subject_id');
     const term = searchParams.get('term');
 
-    let query: Record<string, unknown> = {};
+    const query: Record<string, unknown> = {};
 
     if (user.role === 'student') {
       const profile = await StudentProfile.findOne({ user_id: user._id.toString() });

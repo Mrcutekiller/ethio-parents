@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
     const subjectId = searchParams.get('subject_id');
     const type = searchParams.get('type');
 
-    let query: Record<string, unknown> = {};
+    const query: Record<string, unknown> = {};
     if (user.role === 'teacher' || user.role === 'admin') {
       query.teacher_id = user._id.toString();
     }
