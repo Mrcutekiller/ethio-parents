@@ -5,7 +5,6 @@ import ParentLink from '@/lib/models/ParentLink';
 import User from '@/lib/models/User';
 import { getAuthUser } from '@/lib/auth';
 
-
 const MAX_ATTEMPTS = 5;
 const LOCKOUT_MINUTES = 30;
 
@@ -17,18 +16,27 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { verification_code, relationship } = body;
+    const { verification_code, student_id, relationship } = body;
 
-    if (!verification_code || !relationship) {
-      return NextResponse.json({ error: 'Verification code and relationship are required' }, { status: 400 });
+    if (!relationship) {
+      return NextResponse.json({ error: 'Relationship is required' }, { status: 400 });
+    }
+    if (!verification_code && !student_id) {
+      return NextResponse.json({ error: 'Please provide either a verification code or student ID' }, { status: 400 });
     }
 
     await connectDB();
 
-    // Find student by verification code
-    const studentProfile = await StudentProfile.findOne({ verification_code: verification_code.toUpperCase() });
+    // Find student by verification code OR student_id
+    let studentProfile;
+    if (verification_code) {
+      studentProfile = await StudentProfile.findOne({ verification_code: verification_code.toUpperCase() });
+    } else if (student_id) {
+      studentProfile = await StudentProfile.findOne({ student_id: student_id.toUpperCase() });
+    }
+
     if (!studentProfile) {
-      return NextResponse.json({ error: 'Invalid verification code. Please check the code and try again.' }, { status: 404 });
+      return NextResponse.json({ error: 'Student not found. Please check the code or student ID and try again.' }, { status: 404 });
     }
 
     // Check if already linked
@@ -54,6 +62,9 @@ export async function POST(request: NextRequest) {
       }, { status: 429 });
     }
 
+    // Get student name for response
+    const studentUser = await User.findById(studentProfile.user_id).select('name');
+
     // Create link
     const link = await ParentLink.create({
       parent_id: user._id.toString(),
@@ -65,6 +76,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       link,
+      student_name: studentUser?.name || 'Student',
       message: 'Child linked successfully!',
     }, { status: 201 });
   } catch (error) {
@@ -83,7 +95,6 @@ export async function GET(request: NextRequest) {
     await connectDB();
     const links = await ParentLink.find({ parent_id: user._id.toString() });
 
-    // Enrich with student info + user name
     const enriched = await Promise.all(links.map(async (link) => {
       const profile = await StudentProfile.findById(link.student_id);
       let studentName = 'Unknown Student';
