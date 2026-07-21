@@ -51,7 +51,7 @@ function AnimatedCounter({ target, suffix = "" }: { target: number; suffix?: str
   useEffect(() => {
     if (!started) return;
     let start = 0;
-    const duration = 2000;
+    const duration = 1500;
     const step = (timestamp: number) => {
       if (!start) start = timestamp;
       const progress = Math.min((timestamp - start) / duration, 1);
@@ -93,57 +93,23 @@ function Reveal({
   }, []);
 
   const transforms: Record<string, string> = {
-    up: "translate-y-12",
-    down: "-translate-y-12",
-    left: "translate-x-12",
-    right: "-translate-x-12",
-    scale: "scale-90",
+    up: "translate-y-5",
+    down: "-translate-y-5",
+    left: "translate-x-5",
+    right: "-translate-x-5",
+    scale: "scale-95",
     fade: "",
   };
 
   return (
     <div
       ref={ref}
-      className={`transition-all duration-[800ms] cubic-bezier(0.16, 1, 0.3, 1) ${
+      className={`transition-all duration-[600ms] ease-out ${
         visible ? "opacity-100 translate-x-0 translate-y-0 scale-100" : `opacity-0 ${transforms[direction]}`
       } ${className}`}
       style={{ transitionDelay: `${delay}ms` }}
     >
       {children}
-    </div>
-  );
-}
-
-/* ═══════════════════════ Particle Background ═══════════════════════ */
-
-function Particles() {
-  const particles = Array.from({ length: 40 }, (_, i) => ({
-    id: i,
-    left: `${Math.random() * 100}%`,
-    top: `${Math.random() * 100}%`,
-    size: Math.random() * 4 + 2,
-    duration: Math.random() * 8 + 6,
-    delay: Math.random() * 5,
-    opacity: Math.random() * 0.3 + 0.1,
-  }));
-
-  return (
-    <div className="hero-particles">
-      {particles.map((p) => (
-        <div
-          key={p.id}
-          className="particle"
-          style={{
-            left: p.left,
-            top: p.top,
-            width: p.size,
-            height: p.size,
-            opacity: p.opacity,
-            animationDuration: `${p.duration}s`,
-            animationDelay: `${p.delay}s`,
-          }}
-        />
-      ))}
     </div>
   );
 }
@@ -264,18 +230,11 @@ export default function LandingPage() {
         {/* Background layers */}
         <div className="absolute inset-0 gradient-animate" />
         <div className="hero-mesh" />
-        <Particles />
-        <div className="hero-orb hero-orb-1" style={{ transform: `translate(${mousePos.x * 0.5}px, ${mousePos.y * 0.5}px)` }} />
-        <div className="hero-orb hero-orb-2" style={{ transform: `translate(${mousePos.x * -0.3}px, ${mousePos.y * -0.3}px)` }} />
-        <div className="hero-orb hero-orb-3" style={{ transform: `translate(${mousePos.x * 0.2}px, ${mousePos.y * 0.2}px)` }} />
 
-        {/* Decorative grid dots */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-20 left-20 w-2 h-2 bg-white/30 rounded-full animate-float" />
-          <div className="absolute top-40 right-40 w-1.5 h-1.5 bg-white/20 rounded-full animate-float" style={{ animationDelay: "1s" }} />
-          <div className="absolute bottom-40 left-1/3 w-2.5 h-2.5 bg-white/25 rounded-full animate-float" style={{ animationDelay: "2s" }} />
-          <div className="absolute top-1/3 right-1/4 w-1 h-1 bg-white/40 rounded-full animate-float" style={{ animationDelay: "0.5s" }} />
-        </div>
+        {/* Calm Ethiopian-inspired floating blobs */}
+        <div className="hero-blob hero-blob-green" style={{ transform: `translate(${mousePos.x * 0.3}px, ${mousePos.y * 0.3}px)` }} />
+        <div className="hero-blob hero-blob-amber" style={{ transform: `translate(${mousePos.x * -0.2}px, ${mousePos.y * -0.2}px)` }} />
+        <div className="hero-blob hero-blob-amber-deep" style={{ transform: `translate(${mousePos.x * 0.15}px, ${mousePos.y * 0.15}px)` }} />
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32 text-center">
           {/* Badge */}
