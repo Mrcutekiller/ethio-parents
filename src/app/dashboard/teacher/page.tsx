@@ -2,13 +2,12 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ClipboardCheck, Award, BookOpen, MessageSquare, Calendar, Users, TrendingUp, AlertTriangle } from "lucide-react";
+import { ClipboardCheck, Award, BookOpen, MessageSquare, Calendar, Users, TrendingUp, AlertTriangle, Sparkles, ArrowRight } from "lucide-react";
 
 interface TeacherStats {
   classCount: number;
   studentCount: number;
   unreadMessages: number;
-  recentGrades: number;
   upcomingQuizzes: number;
 }
 
@@ -29,7 +28,6 @@ export default function TeacherDashboard() {
     if (userData) setUser(JSON.parse(userData));
 
     const token = localStorage.getItem("token");
-
     Promise.all([
       fetch("/api/teachers/profile", { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()),
       fetch("/api/notifications?unread=true", { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()),
@@ -40,45 +38,44 @@ export default function TeacherDashboard() {
 
       Promise.all(
         classList.map((cls: ClassInfo) =>
-          fetch(`/api/students?class_id=${cls._id}`, { headers: { Authorization: `Bearer ${token}` } })
-            .then(r => r.json())
+          fetch(`/api/students?class_id=${cls._id}`, { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json())
         )
       ).then((results) => {
         const totalStudents = results.reduce((sum: number, r: { students?: unknown[] }) => sum + (r.students?.length || 0), 0);
         const now = new Date();
-        const upcoming = (quizData.quizzes || []).filter(
-          (q: { due_date: string }) => new Date(q.due_date) > now
-        ).length;
-
-        setStats({
-          classCount: classList.length,
-          studentCount: totalStudents,
-          unreadMessages: notifData.unreadCount || 0,
-          recentGrades: 0,
-          upcomingQuizzes: upcoming,
-        });
+        const upcoming = (quizData.quizzes || []).filter((q: { due_date: string }) => new Date(q.due_date) > now).length;
+        setStats({ classCount: classList.length, studentCount: totalStudents, unreadMessages: notifData.unreadCount || 0, upcomingQuizzes: upcoming });
         setLoading(false);
       });
     }).catch(() => setLoading(false));
   }, []);
 
   const quickActions = [
-    { href: "/dashboard/teacher/attendance", label: "Take Attendance", icon: ClipboardCheck, gradient: "from-green-500 to-emerald-600", desc: "Mark today's attendance" },
-    { href: "/dashboard/teacher/grades", label: "Enter Grades", icon: Award, gradient: "from-blue-500 to-indigo-600", desc: "Post student grades" },
-    { href: "/dashboard/teacher/quizzes", label: "Create Quiz", icon: BookOpen, gradient: "from-purple-500 to-violet-600", desc: "Build secure online tests" },
-    { href: "/dashboard/teacher/messages", label: "Messages", icon: MessageSquare, gradient: "from-amber-500 to-orange-600", desc: "Parent communications" },
-    { href: "/dashboard/teacher/calendar", label: "Calendar", icon: Calendar, gradient: "from-teal-500 to-cyan-600", desc: "Manage class schedule" },
+    { href: "/dashboard/teacher/attendance", label: "Attendance", icon: ClipboardCheck, gradient: "from-green-500 to-emerald-600", shadow: "shadow-emerald-500/20", desc: "Mark today's attendance" },
+    { href: "/dashboard/teacher/grades", label: "Grades", icon: Award, gradient: "from-blue-500 to-indigo-600", shadow: "shadow-indigo-500/20", desc: "Post student grades" },
+    { href: "/dashboard/teacher/quizzes", label: "Online Tests", icon: BookOpen, gradient: "from-purple-500 to-violet-600", shadow: "shadow-purple-500/20", desc: "Build secure quizzes" },
+    { href: "/dashboard/teacher/messages", label: "Messages", icon: MessageSquare, gradient: "from-amber-500 to-orange-600", shadow: "shadow-amber-500/20", desc: "Parent communications" },
+    { href: "/dashboard/teacher/calendar", label: "Calendar", icon: Calendar, gradient: "from-teal-500 to-cyan-600", shadow: "shadow-teal-500/20", desc: "Manage class schedule" },
   ];
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div>
-        <h1 className="text-2xl font-bold text-[var(--foreground)]">
-          Welcome, {user?.name || "Teacher"}!
-        </h1>
-        <p className="text-sm text-gray-500 mt-1">Here&apos;s your teaching overview for today</p>
+      {/* Welcome Banner */}
+      <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-violet-700 rounded-2xl p-6 text-white relative overflow-hidden">
+        <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/5 rounded-full blur-2xl" />
+        <div className="absolute -bottom-8 -left-8 w-32 h-32 bg-white/5 rounded-full blur-2xl" />
+        <div className="relative flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-extrabold mb-1">Welcome, {user?.name || "Teacher"}!</h1>
+            <p className="text-white/60 text-sm">Here&apos;s your teaching overview for today</p>
+          </div>
+          <div className="w-12 h-12 bg-white/15 rounded-2xl flex items-center justify-center backdrop-blur-sm border border-white/10">
+            <Sparkles className="w-6 h-6 text-white" />
+          </div>
+        </div>
       </div>
 
+      {/* Stats */}
       {loading ? (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {[1,2,3,4].map(i => (
@@ -90,61 +87,33 @@ export default function TeacherDashboard() {
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 card-hover">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-sm">
-                <Users className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-[var(--foreground)]">{stats?.classCount ?? 0}</p>
-                <p className="text-xs text-gray-500">Classes</p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 card-hover">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-sm">
-                <TrendingUp className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-[var(--foreground)]">{stats?.studentCount ?? 0}</p>
-                <p className="text-xs text-gray-500">Students</p>
+          {[
+            { label: "Classes", value: stats?.classCount ?? 0, icon: Users, gradient: "from-blue-500 to-indigo-600", shadow: "shadow-indigo-500/20" },
+            { label: "Students", value: stats?.studentCount ?? 0, icon: TrendingUp, gradient: "from-green-500 to-emerald-600", shadow: "shadow-emerald-500/20" },
+            { label: "Unread", value: stats?.unreadMessages ?? 0, icon: MessageSquare, gradient: "from-amber-500 to-orange-600", shadow: "shadow-amber-500/20" },
+            { label: "Active Tests", value: stats?.upcomingQuizzes ?? 0, icon: BookOpen, gradient: "from-purple-500 to-violet-600", shadow: "shadow-purple-500/20" },
+          ].map((card) => (
+            <div key={card.label} className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 card-glow group">
+              <div className="flex items-center gap-3">
+                <div className={`w-11 h-11 bg-gradient-to-br ${card.gradient} rounded-xl flex items-center justify-center shadow-lg ${card.shadow} group-hover:scale-110 transition-transform duration-300`}>
+                  <card.icon className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <p className="text-2xl font-extrabold text-[var(--foreground)]">{card.value}</p>
+                  <p className="text-xs text-gray-500 font-medium">{card.label}</p>
+                </div>
               </div>
             </div>
-          </div>
-          <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 card-hover">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl flex items-center justify-center shadow-sm">
-                <MessageSquare className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-[var(--foreground)]">{stats?.unreadMessages ?? 0}</p>
-                <p className="text-xs text-gray-500">Unread</p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 card-hover">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-violet-600 rounded-xl flex items-center justify-center shadow-sm">
-                <BookOpen className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-[var(--foreground)]">{stats?.upcomingQuizzes ?? 0}</p>
-                <p className="text-xs text-gray-500">Active Quizzes</p>
-              </div>
-            </div>
-          </div>
+          ))}
         </div>
       )}
 
+      {/* Quick Actions */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
         {quickActions.map((action) => (
-          <Link
-            key={action.href}
-            href={action.href}
-            className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:shadow-md hover:border-gray-200 transition-all text-center group card-hover"
-          >
-            <div className={`w-12 h-12 bg-gradient-to-br ${action.gradient} rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform shadow-sm`}>
+          <Link key={action.href} href={action.href}
+            className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 card-glow text-center group">
+            <div className={`w-12 h-12 bg-gradient-to-br ${action.gradient} rounded-xl flex items-center justify-center mx-auto mb-3 shadow-lg ${action.shadow} group-hover:scale-110 transition-transform duration-300`}>
               <action.icon className="w-5 h-5 text-white" />
             </div>
             <p className="text-sm font-semibold text-[var(--foreground)]">{action.label}</p>
@@ -153,55 +122,55 @@ export default function TeacherDashboard() {
         ))}
       </div>
 
+      {/* Classes + Tips */}
       <div className="grid lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
-          <h2 className="font-semibold text-[var(--foreground)] mb-4 flex items-center gap-2">
-            <Users className="w-4 h-4 text-gray-400" />
-            My Classes
-          </h2>
-          {classes.length === 0 ? (
-            <p className="text-sm text-gray-400 text-center py-4">No classes assigned yet. Contact Admin.</p>
-          ) : (
-            <div className="space-y-2">
-              {classes.map((cls) => (
-                <div key={cls._id} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 bg-gradient-to-br from-[var(--primary)] to-blue-600 rounded-xl flex items-center justify-center text-xs font-bold text-white">
-                      G{cls.grade_level}
-                    </div>
-                    <span className="text-sm font-medium">{cls.name}</span>
-                  </div>
-                  <Link href={`/dashboard/teacher/attendance`} className="text-xs text-[var(--primary)] font-medium hover:underline">
-                    Take Attendance
-                  </Link>
-                </div>
-              ))}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 card-glow">
+          <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Users className="w-4 h-4 text-[var(--primary)]" />
+              <h2 className="font-semibold text-sm text-[var(--foreground)]">My Classes</h2>
             </div>
-          )}
+            <Link href="/dashboard/teacher/attendance" className="text-xs text-[var(--primary)] font-medium flex items-center gap-1 hover:gap-2 transition-all">
+              Take Attendance <ArrowRight className="w-3 h-3" />
+            </Link>
+          </div>
+          <div className="p-5">
+            {classes.length === 0 ? (
+              <p className="text-sm text-gray-400 text-center py-4">No classes assigned yet. Contact Admin.</p>
+            ) : (
+              <div className="space-y-2">
+                {classes.map((cls) => (
+                  <div key={cls._id} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 bg-gradient-to-br from-[var(--primary)] to-blue-600 rounded-xl flex items-center justify-center text-xs font-bold text-white shadow-sm">
+                        G{cls.grade_level}
+                      </div>
+                      <span className="text-sm font-medium">{cls.name}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
-          <h2 className="font-semibold text-[var(--foreground)] mb-4 flex items-center gap-2">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 card-glow p-5">
+          <div className="flex items-center gap-2 mb-4">
             <AlertTriangle className="w-4 h-4 text-amber-400" />
-            Quick Reminders
-          </h2>
+            <h2 className="font-semibold text-sm text-[var(--foreground)]">Quick Reminders</h2>
+          </div>
           <ul className="space-y-3 text-sm text-gray-600">
-            <li className="flex items-start gap-2">
-              <span className="text-green-500 mt-0.5 text-base">&#8226;</span>
-              Mark attendance daily — parents are notified of absences in real-time.
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-blue-500 mt-0.5 text-base">&#8226;</span>
-              Post grades promptly — students and parents receive instant notifications.
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-purple-500 mt-0.5 text-base">&#8226;</span>
-              Use the quiz builder to create secure, proctored online assessments.
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-amber-500 mt-0.5 text-base">&#8226;</span>
-              Check messages regularly — parents can reach you about their child&apos;s progress.
-            </li>
+            {[
+              { color: "bg-green-500", text: "Mark attendance daily — parents are notified of absences in real-time." },
+              { color: "bg-[var(--primary)]", text: "Post grades promptly — students and parents receive instant notifications." },
+              { color: "bg-purple-500", text: "Use the quiz builder to create secure, proctored online assessments." },
+              { color: "bg-amber-500", text: "Check messages regularly — parents can reach you about their child's progress." },
+            ].map((item, i) => (
+              <li key={i} className="flex items-start gap-2">
+                <span className={`w-2 h-2 ${item.color} rounded-full mt-1.5 flex-shrink-0`} />
+                {item.text}
+              </li>
+            ))}
           </ul>
         </div>
       </div>
